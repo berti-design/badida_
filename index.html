@@ -7817,7 +7817,7 @@ async function processarSemanal(){
 
   // Diário: se nenhum dia foi preenchido, usa a narrativa como contexto
   // (presença em pelo menos um dia OU narrativa são suficientes — não bloqueia)
-  const temDiario = ['seg','ter','qua','qui','sex'].some(d => state.diario[d]?.(texto||'').trim() || Object.values(state.diario[d]?.presenca||{}).some(Boolean));
+  const temDiario = ['seg','ter','qua','qui','sex'].some(function(d){ var dia = state.diario && state.diario[d]; if(!dia) return false; var temTexto = (dia.texto||'').trim().length > 0; var temPresenca = Object.values(dia.presenca||{}).some(Boolean); return temTexto || temPresenca; });
   const temNarrativa = !!(((document.getElementById('narrativa-visita')||{value:''}).value||'').trim() || (state.narrativa||'').trim());
   if(!temDiario && !temNarrativa){
     toast('⚠️ Registre presença ou escreva a narrativa da semana antes de processar', 'error');
