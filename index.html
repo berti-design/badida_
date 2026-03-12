@@ -6294,11 +6294,15 @@ async function callClaude(opts){
 
   // ── 1. Cloudflare Worker (principal) ────────────────────────────────
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(function(){ controller.abort(); }, 45000); // 45s timeout
     const resp = await fetch('https://anthropic-proxy.berti-b52.workers.dev', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
+      signal: controller.signal
     });
+    clearTimeout(timer);
     if(resp.ok){
       const data = await resp.json();
       if(data.content){
@@ -6310,7 +6314,9 @@ async function callClaude(opts){
     }
     throw new Error('Worker retornou HTTP ' + resp.status);
   } catch(workerErr){
+    if(workerErr.name === 'AbortError') throw new Error('Tempo limite excedido (45s). Verifique o Cloudflare Worker.');
     console.warn('Worker falhou, tentando fallback:', workerErr.message);
+    throw workerErr; // Não tenta fallback — expõe o erro real
   }
 
   // ── 2. Apps Script proxy (fallback) ─────────────────────────────────
@@ -8042,6 +8048,7 @@ function aplicarExtracoes(){
   if(!extracaoAtual){ fecharApplyModal(); return; }
   const d = extracaoAtual;
   let count = 0;
+  try {
 
   // Serviços
   (d.servicos_atualizados||[]).forEach((s,i)=>{
@@ -8136,7 +8143,13 @@ function aplicarExtracoes(){
   renderHistoricoVisitas();
 
   saveState();
-  toast(`✅ ${count} atualizações aplicadas ao Cockpit!`, 'success');
+  toast('✅ ' + count + ' atualizações aplicadas ao Cockpit!', 'success');
+  } catch(e){
+    console.error('aplicarExtracoes erro:', e);
+    toast('Erro ao aplicar: ' + e.message, 'error');
+    fecharApplyModal();
+    extracaoAtual = null;
+  }
 }
 
 // ───────────────────────────────────────────────
