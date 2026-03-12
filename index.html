@@ -6279,14 +6279,9 @@ function getApiKey(){
 // CLAUDE API — HELPER COMPARTILHADO
 // ───────────────────────────────────────────────
 async function callClaude(opts){
-  // Tentar proxy primeiro (key fica no servidor)
-  // Fallback: chamada direta com key local (modo legado)
-  const proxyUrl  = getSyncScript();
-  const directKey = getApiKey();
-
-  if(!proxyUrl && !directKey){
-    throw new Error('IA não configurada. Configure o Apps Script de Sync (recomendado) ou a API Key em Integrações.');
-  }
+  // Prioridade: 1) Cloudflare Worker (sempre disponível, key no servidor)
+  //             2) Apps Script proxy (se configurado)
+  // Nunca expõe a key no browser.
 
   if(opts.onProgress) opts.onProgress('Enviando para Claude...', 20);
 
@@ -6297,7 +6292,29 @@ async function callClaude(opts){
   };
   if(opts.system) body.system = opts.system;
 
-  // ── Modo proxy (Apps Script intermediando — key não sai do device) ──
+  // ── 1. Cloudflare Worker (principal) ────────────────────────────────
+  try {
+    const resp = await fetch('https://anthropic-proxy.berti-b52.workers.dev', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if(resp.ok){
+      const data = await resp.json();
+      if(data.content){
+        const raw = data.content.map(function(b){ return b.text||''; }).join('').trim();
+        if(opts.onProgress) opts.onProgress('Pronto!', 100);
+        return raw;
+      }
+      if(data.error) throw new Error(data.error.message || 'Erro do Worker');
+    }
+    throw new Error('Worker retornou HTTP ' + resp.status);
+  } catch(workerErr){
+    console.warn('Worker falhou, tentando fallback:', workerErr.message);
+  }
+
+  // ── 2. Apps Script proxy (fallback) ─────────────────────────────────
+  const proxyUrl = getSyncScript();
   if(proxyUrl){
     try {
       const params = new URLSearchParams({
@@ -6307,51 +6324,19 @@ async function callClaude(opts){
         messages:   JSON.stringify(body.messages),
         system:     body.system || ''
       });
-      const resp = await fetch(`${proxyUrl}?${params.toString()}`);
+      const resp = await fetch(proxyUrl + '?' + params.toString());
       const d    = await resp.json();
       if(d.ok){
         if(opts.onProgress) opts.onProgress('Pronto!', 100);
         return d.text;
       }
-      // Se proxy retornar "ANTHROPIC_KEY não configurada", avisar claramente
-      if(d.msg && d.msg.includes('ANTHROPIC_KEY')){
-        throw new Error('Proxy configurado mas ANTHROPIC_KEY não definida nas Propriedades do Apps Script. Veja instruções em Seção 1 → Integrações.');
-      }
-      // Qualquer outro erro do proxy → tentar fallback direto se tiver key
-      if(!directKey) throw new Error(d.msg || 'Erro no proxy');
-      console.warn('Proxy falhou, usando chave direta:', d.msg);
+      throw new Error(d.msg || 'Erro no Apps Script proxy');
     } catch(proxyErr){
-      if(!directKey) throw proxyErr;
-      console.warn('Proxy indisponível, fallback direto:', proxyErr.message);
+      throw new Error('IA indisponível: ' + proxyErr.message);
     }
   }
 
-  // ── Modo direto (key no localStorage — legado / fallback) ───────────
-  if(!directKey) throw new Error('API Key não configurada. Configure o proxy no Apps Script ou adicione a key em Integrações.');
-
-  let resp;
-  try {
-    resp = await fetch('https://anthropic-proxy.berti-b52.workers.dev', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-  } catch(netErr){
-    throw new Error('Erro de conexão. Verifique sua internet.');
-  }
-
-  if(opts.onProgress) opts.onProgress('Processando resposta...', 70);
-
-  if(!resp.ok){
-    let errMsg = 'HTTP ' + resp.status;
-    try { const e = await resp.json(); errMsg = (e.error?.message) || errMsg; } catch(_){}
-    throw new Error(errMsg);
-  }
-
-  const data = await resp.json();
-  const raw  = data.content.map(b => b.text||'').join('').trim();
-  if(opts.onProgress) opts.onProgress('Pronto!', 100);
-  return raw;
+  throw new Error('IA não configurada. Verifique sua conexão com o Cloudflare Worker.');
 }
 
 function parseClaudeJSON(raw){
