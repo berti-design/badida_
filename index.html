@@ -8436,7 +8436,10 @@ async function aplicarNaPlanilha(){
       equipe_cod:     s.equipe_cod || s.equipe      || '',
       equipe:         s.equipe                      || '',
       status:         s.status_atual   || 'A EXECUTAR',
-      pct:            s.pct_atual      || 0
+      pct:            (s.pct_atual || 0) / 100,   // planilha espera decimal: 0.50 = 50%
+      data_inicio:    s.data_inicio    || '',
+      data_fim:       s.data_fim       || '',
+      prazo_dias:     parseInt(s.prazo_dias) || 0
     })),
     pagamentos: (state.pagamentos||[]).map((p, idx) => ({
       numero:    String(idx + 1).padStart(3,'0'),
