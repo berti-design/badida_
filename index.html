@@ -796,6 +796,134 @@ body .os-backup button{border-radius:0}
 .rot-progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .4s}
 .rot-progress-fill.high{background:#065F46}
 .rot-progress-text{font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--ink);white-space:nowrap}
+
+/* ───── GUIA INTERATIVO FLUTUANTE ───── */
+#guia-flutuante {
+  position: fixed;
+  bottom: 20px;
+  right: 18px;
+  width: 300px;
+  z-index: 8800;
+  font-family: var(--font-body);
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,.22));
+  transition: transform .3s cubic-bezier(.4,0,.2,1), opacity .3s;
+}
+#guia-flutuante.hidden { transform: translateY(120%); opacity: 0; pointer-events: none; }
+#guia-flutuante.minimized { width: 180px; }
+
+.guia-card {
+  background: var(--primary);
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.1);
+}
+.guia-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px;
+  background: rgba(0,0,0,.25);
+  cursor: pointer;
+  user-select: none;
+}
+.guia-header-icon {
+  width: 22px; height: 22px; border-radius: 6px;
+  background: var(--gold); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800; flex-shrink: 0;
+}
+.guia-header-title {
+  font-family: var(--font-display);
+  font-size: 12px; font-weight: 800;
+  color: #fff; letter-spacing: .3px; flex: 1;
+}
+.guia-header-fase {
+  font-size: 10px; color: rgba(255,255,255,.45);
+  font-family: var(--font-mono);
+}
+.guia-header-close {
+  background: rgba(255,255,255,.12); border: none;
+  color: rgba(255,255,255,.7); width: 22px; height: 22px;
+  border-radius: 6px; font-size: 13px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.guia-header-close:hover { background: rgba(255,255,255,.22); color: #fff; }
+
+.guia-body { padding: 14px; }
+.guia-step-num {
+  font-size: 10px; color: var(--gold);
+  font-family: var(--font-mono); font-weight: 700;
+  text-transform: uppercase; letter-spacing: .5px;
+  margin-bottom: 4px;
+}
+.guia-step-title {
+  font-family: var(--font-display);
+  font-size: 15px; font-weight: 800;
+  color: #fff; line-height: 1.25; margin-bottom: 5px;
+}
+.guia-step-hint {
+  font-size: 12px; color: rgba(255,255,255,.6);
+  line-height: 1.5; margin-bottom: 12px;
+}
+.guia-btns {
+  display: flex; gap: 8px;
+}
+.guia-btn-skip {
+  flex: 1; padding: 8px;
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+  color: rgba(255,255,255,.7); border-radius: 8px;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: background .15s;
+}
+.guia-btn-skip:hover { background: rgba(255,255,255,.18); color: #fff; }
+.guia-btn-ir {
+  flex: 2; padding: 8px 12px;
+  background: var(--gold); border: none;
+  color: var(--primary); border-radius: 8px;
+  font-size: 12px; font-weight: 800; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  transition: opacity .15s;
+}
+.guia-btn-ir:hover { opacity: .88; }
+
+.guia-progress-bar {
+  height: 3px; background: rgba(255,255,255,.12);
+  border-radius: 0 0 14px 14px; overflow: hidden;
+}
+.guia-progress-fill {
+  height: 100%; background: var(--gold);
+  transition: width .4s cubic-bezier(.4,0,.2,1);
+}
+
+/* Botão reabrir (minimizado) */
+#guia-reabrir {
+  position: fixed; bottom: 20px; right: 18px;
+  z-index: 8800;
+  background: var(--primary); color: #fff;
+  border: none; border-radius: 12px;
+  padding: 10px 16px;
+  font-family: var(--font-display); font-size: 12px; font-weight: 800;
+  cursor: pointer; display: none;
+  align-items: center; gap: 8px;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,.3));
+  transition: transform .2s;
+}
+#guia-reabrir:hover { transform: translateY(-2px); }
+#guia-reabrir .gr-badge {
+  background: var(--gold); color: var(--primary);
+  border-radius: 5px; font-size: 10px; font-weight: 800;
+  padding: 1px 6px; font-family: var(--font-mono);
+}
+/* Botão no roteiro */
+#btn-abrir-guia {
+  display: flex; align-items: center; gap: 6px;
+  margin: 0 auto 14px;
+  background: var(--primary); color: #fff; border: none;
+  padding: 8px 20px; border-radius: 8px;
+  font-family: var(--font-display); font-size: 12px; font-weight: 800;
+  cursor: pointer; letter-spacing: .3px;
+}
+#btn-abrir-guia:hover { opacity: .88; }
+
 /* ───── DRAWER (Painel de Início) ───── */
 #drawer{
   position:sticky;top:var(--topbar-h);z-index:50;
@@ -2367,6 +2495,9 @@ body.tabs-active .tab-panel.active{max-width:900px;margin:0 auto;padding:12px 12
     <div class="sec-chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>
   </div>
   <div class="sec-body" style="padding:14px">
+    <button id="btn-abrir-guia" onclick="guiaAbrir()">
+      🗺 Abrir Guia Interativo Passo a Passo
+    </button>
     <div id="roteiro-content"></div>
   </div>
 </div>
@@ -3567,6 +3698,8 @@ function saveState(){
 
       // Monitorar limite de storage
       verificarStorageLimit();
+      // Atualizar guia interativo
+      if(typeof guiaAtualizar === 'function') setTimeout(guiaAtualizar, 200);
     } catch(e){
       console.warn('localStorage save failed:', e.message);
       toast('⚠️ Armazenamento local cheio — envie fotos para nuvem','warning');
@@ -7156,6 +7289,208 @@ function updateVisitaContext(){
 }
 
 // ───────────────────────────────────────────────
+
+// ═══════════════════════════════════════════════════════════════
+// GUIA INTERATIVO FLUTUANTE
+// ═══════════════════════════════════════════════════════════════
+var guiaStepAtual = 0;
+var guiaSkipped   = [];  // índices pulados
+var guiaFechado   = false;
+
+function guiaGetSteps(){
+  var c2 = state.config;
+  var srvs = state.servicos || [];
+  var eqs  = state.equipes  || [];
+  var hasObra      = !!(c2.obra||'').trim();
+  var hasSrvs      = srvs.length > 0;
+  var hasEquipes   = eqs.length  > 0;
+  var hasApi       = !!getApiKey();
+  var hasImgbb     = !!getImgbbKey();
+  var srvMudou     = srvs.some(function(s){ return s.status_atual !== s.status_anterior || s.pct_atual !== s.pct_anterior; });
+  var hasPresenca  = eqs.some(function(e){ return e.presenca && Object.values(e.presenca).some(function(v){ return v !== 'nd'; }); });
+  var hasFotos     = (state.fotos||[]).length > 0;
+  var hasPend      = (state.pendencias||[]).filter(function(p){ return p.status !== 'RESOLVIDA'; }).length > 0;
+  var hasPag       = (state.pagamentos||[]).length > 0;
+  var hasNarr      = !!((document.getElementById('narrativa-visita')||{value:''}).value||'').trim() || !!(state.narrativa||'').trim();
+  var hasBloco     = !!((document.getElementById('export-atualizacao')||{value:''}).value||'').trim();
+  var hasSyncConf  = !!getGscriptUrl();
+  var nPend        = (state.pendencias||[]).filter(function(p){ return p.status !== 'RESOLVIDA'; }).length;
+
+  return [
+    // FASE 1 — Antes da visita
+    { fase:'PREPARAÇÃO', titulo:'Configurar a obra', dica:'Preencha nome, cliente, semana e período da obra antes de começar.', feito:hasObra, tab:'tab-config', sec:'sec-config', acao:'Configurar' },
+    { fase:'PREPARAÇÃO', titulo:'Importar serviços', dica: hasSrvs ? srvs.length+' serviços carregados.' : 'Cole o JSON do orçamento para importar os serviços da obra.', feito:hasSrvs, tab:'tab-config', sec:'sec-config', acao:'Importar' },
+    { fase:'PREPARAÇÃO', titulo:'Importar equipes', dica: hasEquipes ? eqs.length+' equipes cadastradas.' : 'Importe as equipes para registrar presença e vincular serviços.', feito:hasEquipes, tab:'tab-config', sec:'sec-config', acao:'Importar' },
+    { fase:'PREPARAÇÃO', titulo:'Configurar API da IA', dica: hasApi ? 'Chave configurada — IA pronta.' : 'Salve sua chave Anthropic para usar o processamento com IA.', feito:hasApi, tab:'tab-config', sec:'sec-integ', acao:'Configurar' },
+    { fase:'PREPARAÇÃO', titulo:'Configurar ImgBB (fotos)', dica: hasImgbb ? 'Fotos serão enviadas para a nuvem automaticamente.' : 'Opcional — evita lotar o armazenamento local do dispositivo.', feito:hasImgbb, tab:'tab-config', sec:'sec-integ', acao:'Configurar', opcional:true },
+
+    // FASE 2 — Na obra
+    { fase:'NA OBRA', titulo:'Consultar painel rápido', dica:'Toque na topbar para ver dados da obra, WhatsApp do cliente, endereço e PIX das equipes.', feito:false, fn:'toggleDrawer()', acao:'Abrir painel', sempreAtivo:true },
+    { fase:'NA OBRA', titulo:'Atualizar serviços', dica: srvMudou ? 'Alterações registradas — bom trabalho!' : 'Ajuste o status e % dos serviços que você observou na visita.', feito:srvMudou, tab:'tab-orcamento', sec:null, acao:'Ver orçamento' },
+    { fase:'NA OBRA', titulo:'Registrar presença das equipes', dica: hasPresenca ? 'Presença registrada.' : 'Marque quem estava presente em cada dia da semana.', feito:hasPresenca, tab:'tab-equipes', sec:'sec-equipes', acao:'Registrar presença' },
+    { fase:'NA OBRA', titulo:'Registrar fotos da visita', dica: hasFotos ? (state.fotos||[]).length+' foto(s) registrada(s).' : 'Fotografe os serviços em andamento para o relatório semanal.', feito:hasFotos, tab:'tab-registro', sec:'sec-fotos', acao:'Adicionar fotos', opcional:true },
+    { fase:'NA OBRA', titulo:'Registrar pendências', dica: hasPend ? nPend+' pendência(s) aberta(s).' : 'Documente problemas, atrasos ou decisões que precisam ser tomadas.', feito:!hasPend && (state.pendencias||[]).length > 0, tab:'tab-registro', sec:'sec-pendencias', acao:'Ver pendências', opcional:true },
+
+    // FASE 3 — Processamento
+    { fase:'PROCESSAMENTO', titulo:'Gravar narrativa da visita', dica: hasNarr ? 'Narrativa registrada — IA pronta para processar.' : 'Descreva o que observou na obra. A IA extrai serviços, pendências e avanços.', feito:hasNarr, tab:'tab-campo', sec:'sec-visita', acao:'Registrar visita' },
+    { fase:'PROCESSAMENTO', titulo:'Registrar pagamentos e NFs', dica: hasPag ? (state.pagamentos||[]).length+' lançamento(s) registrado(s).' : 'Lance os pagamentos e notas fiscais da semana.', feito:hasPag, tab:'tab-financeiro', sec:'sec-pagamentos', acao:'Pagamentos', opcional:true },
+
+    // FASE 4 — Fechamento
+    { fase:'FECHAMENTO', titulo:'Processar semana com IA', dica: hasBloco ? 'Bloco de atualização gerado!' : 'A IA analisa todos os dados e gera a atualização formatada para a planilha.', feito:hasBloco, tab:'tab-fechamento', sec:'sec-export', acao:'Processar IA' },
+    { fase:'FECHAMENTO', titulo:'Sincronizar com a planilha', dica: hasSyncConf ? 'Apps Script configurado. Clique em "Aplicar Direto na Planilha".' : 'Configure o Apps Script ou copie o BLOCO-ATUALIZACAO para colar na planilha.', feito:false, tab:'tab-fechamento', sec:'sec-export', acao:'Fechamento', sempreAtivo:true },
+    { fase:'FECHAMENTO', titulo:'Gerar relatórios e enviar ao cliente', dica:'Relatório semanal, medição formal e dashboard do cliente.', feito:false, tab:'tab-fechamento', sec:'sec-relatorios', acao:'Relatórios', sempreAtivo:true },
+
+    // FASE 5 — Próxima semana
+    { fase:'PRÓXIMA SEMANA', titulo:'Avançar para a próxima semana', dica:'Atualiza o número da semana e as datas do período automaticamente.', feito:false, fn:'avancarSemana()', acao:'Avançar semana', sempreAtivo:true },
+    { fase:'PRÓXIMA SEMANA', titulo:'Revisar pendências abertas', dica: nPend ? nPend+' pendência(s) ainda abertas — revise antes de fechar a semana.' : 'Nenhuma pendência aberta.', feito:nPend===0, tab:'tab-registro', sec:'sec-pendencias', acao:'Ver pendências' }
+  ];
+}
+
+function guiaTotalFeitos(){
+  var steps = guiaGetSteps();
+  return steps.filter(function(s){ return s.feito && !s.opcional; }).length;
+}
+function guiaTotalObrig(){
+  return guiaGetSteps().filter(function(s){ return !s.opcional && !s.sempreAtivo; }).length;
+}
+
+function guiaRenderStep(){
+  // Guard — elementos podem não existir se guia estiver fechado
+  var elNum   = document.getElementById('guia-step-num');
+  var elTitle = document.getElementById('guia-step-title');
+  var elHint  = document.getElementById('guia-step-hint');
+  var elBtnLbl= document.getElementById('guia-btn-label');
+  var elFill  = document.getElementById('guia-progress-fill');
+  var elFase  = document.getElementById('guia-h-fase');
+  var elHTitl = document.getElementById('guia-h-title');
+  if(!elNum || !elTitle || !elHint) return; // DOM não pronto ainda
+
+  var steps = guiaGetSteps();
+  var n = steps.length;
+  var feitos = guiaTotalFeitos();
+  var total  = guiaTotalObrig();
+  var pct    = total > 0 ? Math.round(feitos / total * 100) : 0;
+
+  // Pular passos já feitos (exceto sempreAtivo)
+  while(guiaStepAtual < n && steps[guiaStepAtual].feito && !steps[guiaStepAtual].sempreAtivo){
+    guiaStepAtual++;
+  }
+  if(guiaStepAtual >= n){
+    elNum.textContent   = '🎉 Tudo pronto!';
+    elTitle.textContent = 'Semana concluída';
+    elHint.textContent  = 'Todos os passos foram completados. Ótima semana!';
+    if(elBtnLbl)  elBtnLbl.textContent  = 'Fechar';
+    if(elFill)    elFill.style.width    = '100%';
+    if(elFase)    elFase.textContent    = 'CONCLUÍDO';
+    if(elHTitl)   elHTitl.textContent   = feitos+'/'+total+' · '+pct+'%';
+    var rb = document.getElementById('guia-reabrir-badge');
+    if(rb) rb.textContent = feitos+'/'+total;
+    return;
+  }
+
+  var s = steps[guiaStepAtual];
+  var idx1 = guiaStepAtual + 1;
+  elNum.textContent   = 'Passo '+idx1+' / '+n + (s.opcional ? ' — opcional' : '');
+  elTitle.textContent = s.titulo;
+  elHint.textContent  = s.dica;
+  if(elBtnLbl)  elBtnLbl.textContent  = s.acao || 'Ir';
+  if(elFase)    elFase.textContent    = s.fase || '';
+  if(elHTitl)   elHTitl.textContent   = feitos+'/'+total+' · '+pct+'%';
+  if(elFill)    elFill.style.width    = pct + '%';
+
+  var rb = document.getElementById('guia-reabrir-badge');
+  if(rb) rb.textContent = feitos+'/'+total;
+}
+
+function guiaAbrir(){
+  guiaFechado = false;
+  var steps = guiaGetSteps();
+  guiaStepAtual = 0;
+  while(guiaStepAtual < steps.length && steps[guiaStepAtual].feito && !steps[guiaStepAtual].sempreAtivo){
+    guiaStepAtual++;
+  }
+  var el = document.getElementById('guia-flutuante');
+  var rb = document.getElementById('guia-reabrir');
+  if(!el){ return; } // DOM ainda não pronto
+  el.classList.remove('hidden');
+  if(rb) rb.style.display = 'none';
+  // Render após DOM visível
+  requestAnimationFrame(function(){
+    guiaRenderStep();
+  });
+}
+
+function guiaFechar(){
+  guiaFechado = true;
+  var el = document.getElementById('guia-flutuante');
+  var rb = document.getElementById('guia-reabrir');
+  if(el) el.classList.add('hidden');
+  // Mostrar botão reabrir
+  if(rb){
+    rb.style.display = 'flex';
+    var feitos = guiaTotalFeitos();
+    var total  = guiaTotalObrig();
+    var badge  = document.getElementById('guia-reabrir-badge');
+    if(badge) badge.textContent = feitos+'/'+total;
+  }
+}
+
+function guiaToggleMin(){
+  var wrap = document.getElementById('guia-body-wrap');
+  if(!wrap) return;
+  wrap.style.display = wrap.style.display === 'none' ? '' : 'none';
+}
+
+function guiaPular(){
+  var steps = guiaGetSteps();
+  guiaSkipped.push(guiaStepAtual);
+  guiaStepAtual++;
+  while(guiaStepAtual < steps.length && steps[guiaStepAtual].feito && !steps[guiaStepAtual].sempreAtivo){
+    guiaStepAtual++;
+  }
+  if(guiaStepAtual >= steps.length){
+    guiaFechar(); return;
+  }
+  guiaRenderStep();
+}
+
+function guiaIr(){
+  var steps = guiaGetSteps();
+  if(guiaStepAtual >= steps.length){ guiaFechar(); return; }
+  var s = steps[guiaStepAtual];
+
+  // Navegar
+  if(s.fn){
+    try{ eval(s.fn); }catch(e){}
+  } else if(s.tab){
+    switchTab(s.tab);
+    if(s.sec){ setTimeout(function(){ scrollToSec(s.sec); }, 180); }
+  }
+
+  // Avançar
+  guiaStepAtual++;
+  while(guiaStepAtual < steps.length && steps[guiaStepAtual].feito && !steps[guiaStepAtual].sempreAtivo){
+    guiaStepAtual++;
+  }
+  if(guiaStepAtual >= steps.length){
+    guiaRenderStep(); return;
+  }
+  guiaRenderStep();
+}
+
+function guiaAtualizar(){
+  if(!guiaFechado){
+    var el = document.getElementById('guia-flutuante');
+    if(el && !el.classList.contains('hidden')){
+      guiaRenderStep();
+    }
+  }
+  var rb = document.getElementById('guia-reabrir-badge');
+  if(rb) rb.textContent = guiaTotalFeitos()+'/'+guiaTotalObrig();
+  // Atualizar roteiro de fundo também
+  if(typeof renderRoteiro === 'function') try{ renderRoteiro(); }catch(e){}
+}
+
 // ROTEIRO DE VISITA (dashboard do gestor)
 // ───────────────────────────────────────────────
 function renderRoteiro(){
@@ -9375,7 +9710,40 @@ ${cabHeader}
   <div class="rdp-c">Registro Fotográfico — ${esc2(c.obra||'')}</div>
   <div class="rdp-r">${today()} · Semana ${semana}</div>
 </div>
-</div></body>`;
+</div>
+<!-- ═══ GUIA INTERATIVO FLUTUANTE ═══ -->
+<div id="guia-flutuante" class="hidden">
+  <div class="guia-card">
+    <div class="guia-header" onclick="guiaToggleMin()">
+      <div class="guia-header-icon">🗺</div>
+      <div class="guia-header-title" id="guia-h-title">Guia de Visita</div>
+      <div class="guia-header-fase" id="guia-h-fase">PREPARAÇÃO</div>
+      <button class="guia-header-close" onclick="event.stopPropagation();guiaFechar()" title="Fechar guia">✕</button>
+    </div>
+    <div id="guia-body-wrap">
+      <div class="guia-body">
+        <div class="guia-step-num" id="guia-step-num">Passo 1 / 13</div>
+        <div class="guia-step-title" id="guia-step-title">—</div>
+        <div class="guia-step-hint" id="guia-step-hint">—</div>
+        <div class="guia-btns">
+          <button class="guia-btn-skip" onclick="guiaPular()">Pular</button>
+          <button class="guia-btn-ir" onclick="guiaIr()">Ir → <span id="guia-btn-label">Configurar</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="guia-progress-bar">
+      <div class="guia-progress-fill" id="guia-progress-fill" style="width:0%"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Botão reabrir -->
+<button id="guia-reabrir" onclick="guiaAbrir()">
+  🗺 Guia de Visita
+  <span class="gr-badge" id="guia-reabrir-badge">0/13</span>
+</button>
+
+</body>`;
 
   abrirModalRel(`Registro Fotográfico — Semana ${semana}`, body);
 }
@@ -10537,6 +10905,14 @@ function selecionarObra(key){
     if(typeof renderCronograma==='function')    try{renderCronograma();}catch(e){}
     if(typeof renderDrawer==='function')        try{renderDrawer();}catch(e){}
     if(typeof renderRoteiro==='function')       try{renderRoteiro();}catch(e){}
+    // Abrir guia interativo automaticamente se obra já configurada
+    if(typeof guiaAbrir === 'function'){
+      setTimeout(function(){
+        if((state.config&&state.config.obra||'').trim()){
+          guiaAbrir();
+        }
+      }, 900); // delay maior para garantir DOM completo
+    }
     if(typeof atualizarBadgesAbas==='function') setTimeout(function(){ try{atualizarBadgesAbas();}catch(e){}},100);
     toast('Obra "'+state.config.obra+'" carregada','success');
   } else {
