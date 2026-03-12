@@ -2003,7 +2003,7 @@ body.tabs-active .tab-panel.active{max-width:900px;margin:0 auto;padding:12px 12
 <div id="backup-fail-banner">
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
   <span>Backup offline — dados salvos apenas localmente</span>
-  <button onclick="autoSyncNow(true)">Tentar agora</button>
+  <button onclick="sbSyncManual()">Tentar agora</button>
 </div>
 
 <!-- TABBAR -->
@@ -3700,12 +3700,11 @@ function sbHeaders(){
   return {
     'Content-Type':  'application/json',
     'apikey':        SB_KEY,
-    'Authorization': 'Bearer ' + SB_KEY,
-    'Prefer':        'resolution=merge-duplicates'
+    'Authorization': 'Bearer ' + SB_KEY
   };
 }
 
-// Salva state no Supabase (debounced 3s)
+// Salva state no Supabase — upsert pela PK obra_key (debounced 3s)
 function sbSave(obraKey, stateObj){
   clearTimeout(_sbSaveTimer);
   _sbSaveTimer = setTimeout(async function(){
@@ -3717,16 +3716,24 @@ function sbSave(obraKey, stateObj){
       };
       const r = await fetch(SB_URL + '/rest/v1/' + SB_TABLE, {
         method:  'POST',
-        headers: sbHeaders(),
-        body:    JSON.stringify(payload)
+        headers: {
+          'Content-Type':  'application/json',
+          'apikey':        SB_KEY,
+          'Authorization': 'Bearer ' + SB_KEY,
+          'Prefer':        'resolution=merge-duplicates,return=minimal'
+        },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(15000)
       });
-      if(r.ok || r.status === 409){
+      if(r.ok || r.status === 201 || r.status === 204){
         _sbOnline = true;
         sbAtualizarIndicador('ok');
+        esconderBannerFalha();
         const lbl2 = document.getElementById('sb-last-sync-lbl');
         if(lbl2) lbl2.textContent = 'Sync: ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
       } else {
-        throw new Error('HTTP ' + r.status);
+        const txt = await r.text().catch(function(){ return ''; });
+        throw new Error('HTTP ' + r.status + ' — ' + txt.substring(0,100));
       }
     } catch(e){
       _sbOnline = false;
@@ -3744,7 +3751,7 @@ async function sbLoad(obraKey){
       SB_URL + '/rest/v1/' + SB_TABLE +
       '?obra_key=eq.' + encodeURIComponent(obraKey) +
       '&select=data,updated_at&limit=1',
-      { headers: sbHeaders() }
+      { headers: sbHeaders(), signal: AbortSignal.timeout(10000) }
     );
     if(!r.ok) throw new Error('HTTP ' + r.status);
     const rows = await r.json();
@@ -3871,9 +3878,11 @@ function saveState(){
       sbData.fotos = (sbData.fotos||[]).map(function(f){ return f.cloud&&f.url ? {...f,src:f.url,b64:undefined} : {...f,b64:undefined}; });
       sbSave(newKey.replace('cockpit_',''), sbData);
 
-      // Disparar auto-sync debounced
-      _autoSyncPending = true;
-      agendarAutoSync();
+      // Apps Script sync só se configurado (Supabase é o sync principal)
+      if(getSyncScript()){
+        _autoSyncPending = true;
+        agendarAutoSync();
+      }
 
       // Monitorar limite de storage
       verificarStorageLimit();
