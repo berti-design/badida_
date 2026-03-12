@@ -3394,7 +3394,7 @@ function migrateState(s){
   if(!s.fotos)      s.fotos      = [];
   if(!s.pendencias) s.pendencias = [];
   if(!s.materiais)  s.materiais  = [];
-  if(!s.notas)      s.notas      = '';
+  if(!s.notas || !Array.isArray(s.notas)) s.notas = [];
   if(!s.visitas)    s.visitas    = [];
   const v = s._version || 1;
   if(v < 2){
