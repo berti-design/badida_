@@ -3297,25 +3297,6 @@ body.tabs-active .tab-panel.active{max-width:900px;margin:0 auto;padding:12px 12
           <button class="btn btn-outline btn-sm" onclick="abrirRelatorioFinanceiro()">Gerar →</button>
         </div>
 
-        <!-- Portal do Cliente -->
-        <div class="rel-card">
-          <div class="rel-card-icon" style="background:var(--accent2)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 21V9"/></svg>
-          </div>
-          <div class="rel-card-body">
-            <div class="rel-card-nome">Portal do Cliente</div>
-            <div class="rel-card-desc">Dashboard visual para o cliente · Progresso · Financeiro · Fotos · Links da nuvem · Gere, salve no Drive e envie o link</div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;align-items:flex-end">
-            <div style="display:flex;gap:6px">
-              <button class="btn btn-outline btn-sm" onclick="abrirGeradorLink()" style="background:#E8F5E9;border-color:#2E6645;color:#0D2016;font-weight:700">🔗 Gerar Link</button>
-              <button class="btn btn-primary btn-sm" onclick="gerarDashboardClienteDownload()">⬇ Download</button>
-              <button class="btn btn-outline btn-sm" onclick="abrirDashboardInterativo()">Visualizar</button>
-            </div>
-            <div id="portal-link-indicator" style="font-size:10px;font-family:'IBM Plex Mono',monospace;padding:0"></div>
-          </div>
-        </div>
-
         <!-- Relatório Fotográfico -->
         <div class="rel-card">
           <div class="rel-card-icon" style="background:var(--gold)">
@@ -3342,16 +3323,16 @@ body.tabs-active .tab-panel.active{max-width:900px;margin:0 auto;padding:12px 12
       </div>
       <div class="rel-cards">
 
-        <!-- Relatório Mensal Consolidado -->
-        <div class="rel-card rel-card-destaque" style="border-color:var(--info)">
+        <!-- Relatório Mensal Consolidado — PROTÓTIPO -->
+        <div class="rel-card" style="opacity:.55;pointer-events:none">
           <div class="rel-card-icon" style="background:var(--info)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           </div>
           <div class="rel-card-body">
-            <div class="rel-card-nome">Relatório Mensal</div>
-            <div class="rel-card-desc">DRE para o contador · Relatório de evolução interno com planejamento IA do próximo mês</div>
+            <div class="rel-card-nome">Relatório Mensal <span style="font-size:10px;font-family:var(--font-mono);color:var(--muted);font-weight:400;margin-left:4px">— em breve (Excel)</span></div>
+            <div class="rel-card-desc">DRE para o contador · Evolução interna · Formato .xlsx em desenvolvimento</div>
           </div>
-          <button class="btn btn-primary btn-sm" onclick="gerarRelatorioMensal()">Gerar →</button>
+          <button class="btn btn-outline btn-sm" disabled>Gerar →</button>
         </div>
 
         <!-- Linha do Tempo Visual -->
@@ -3376,18 +3357,6 @@ body.tabs-active .tab-panel.active{max-width:900px;margin:0 auto;padding:12px 12
             <div class="rel-card-desc">Relatório de medição formal + campo de aceite pelo cliente · Registra data e hora da aprovação</div>
           </div>
           <button class="btn btn-outline btn-sm" onclick="gerarMedicaoComAceite()">Gerar →</button>
-        </div>
-
-        <!-- Resumo Executivo CEO -->
-        <div class="rel-card rel-card-destaque" style="border-color:#B91C1C">
-          <div class="rel-card-icon" style="background:#B91C1C">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
-          </div>
-          <div class="rel-card-body">
-            <div class="rel-card-nome">RESUMO EXECUTIVO</div>
-            <div class="rel-card-desc">Margem · Avanço real vs previsto · Alertas de desvio</div>
-          </div>
-          <button class="btn btn-primary btn-sm" style="background:#B91C1C;border-color:#B91C1C" onclick="gerarResumoExecutivo()">Gerar →</button>
         </div>
 
       </div>
@@ -10490,13 +10459,18 @@ function abrirRelatorioGantt(){
     'AGUARDANDO PROJETO':{bg:'#EDE9FE',color:'#5B21B6'}
   };
 
+  // Today marker position
+  const todayDate = new Date(); todayDate.setHours(0,0,0,0);
+  const todayLeft = totalDays > 0 ? ((todayDate - minDate) / (1000*60*60*24) / totalDays * 100).toFixed(1) : -1;
+
+  function _fmtDt(d){ if(!d) return '—'; var dt=new Date(d.includes('/')?d.split('/').reverse().join('-'):d); if(isNaN(dt)) return d; return String(dt.getDate()).padStart(2,'0')+'/'+String(dt.getMonth()+1).padStart(2,'0')+'/'+dt.getFullYear(); }
+
   const tblRows = srvs.map(s=>{
     const st = S[s.status_atual]||S['A EXECUTAR'];
     const pct = s.pct_atual||0;
     return `<tr>
       <td style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#9CA3AF">${esc2(s.cod)}</td>
       <td>${esc2(s.descricao)}</td>
-      <td style="font-size:10px;color:#6B7280">${esc2(s.setor||'—')}</td>
       <td><span class="badge" style="background:${st.bg};color:${st.color}">${esc2(s.status_atual)}</span></td>
       <td>
         <div style="display:flex;align-items:center;gap:6px">
@@ -10504,14 +10478,46 @@ function abrirRelatorioGantt(){
           <span class="money" style="font-size:10px">${pct}%</span>
         </div>
       </td>
-      <td style="font-size:10px">${esc2(s.data_inicio||'—')}</td>
-      <td style="font-size:10px">${esc2(s.data_fim||'—')}</td>
+      <td style="font-size:10px">${_fmtDt(s.data_inicio)}</td>
+      <td style="font-size:10px">${_fmtDt(s.data_fim)}</td>
       <td style="min-width:160px;padding:2px 6px">${ganttBar(s)}</td>
     </tr>`;
   }).join('');
 
-  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">${getDocCSS(p1,p2)}</head><body>
-  ${buildDocHeader('Cronograma & Gantt', `${esc2(c.obra||'')} · ${esc2(c.cliente||'')} · ${srvs.length} serv. · ${srvs.filter(s=>s.status_atual==='CONCLUÍDO').length} concluídos`)}
+  const cabHeader = buildBertiHeader({
+    tipo: 'Cronograma Visual — Gantt',
+    obra: c.obra || 'Obra',
+    end: esc2(c.endereco_obra || ''),
+    campos: [
+      {l:'Contratante', v: esc2(c.razao_cliente||c.cliente||'—')},
+      {l:'Vigência', v: periodo},
+      {l:'Total serviços', v: srvs.length + ' serviços · ' + srvs.filter(s=>s.status_atual==='CONCLUÍDO').length + ' concluídos'},
+      {l:'Gerado em', v: `${today()} · ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`}
+    ]
+  });
+
+  const html = `${getBertiCSS(p1,p2)}
+  <style>
+    .doc-body{padding:20px 28px 40px}
+    .sec-hdr{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;color:${p1};text-transform:uppercase;letter-spacing:.8px;border-bottom:2px solid ${p1};padding-bottom:5px;margin:20px 0 12px}
+    table{width:100%;border-collapse:collapse;font-size:11px}
+    th{background:${p1};color:#fff;padding:6px 10px;text-align:left;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.3px}
+    td{padding:6px 10px;border-bottom:1px solid #EEE;vertical-align:middle}
+    tr:nth-child(even) td{background:#FAFAF9}
+    .badge{display:inline-block;padding:2px 7px;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+    .money{font-family:'IBM Plex Mono',monospace;font-size:11px}
+    .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+    .kpi{border:1.5px solid #E5E0D8;padding:10px 12px}
+    .kpi-val{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;color:${p1};line-height:1}
+    .kpi-lbl{font-size:9px;color:#6B7280;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+    .pct-bar{height:4px;background:#EEE;overflow:hidden}
+    .pct-fill{height:100%;background:${p2}}
+    .pct-fill.done{background:#065F46}
+    @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+  </style>
+  <body>
+  <div class="doc">
+  ${cabHeader}
   <div class="doc-body">
     <div class="kpi-grid">
       <div class="kpi"><div class="kpi-val">${srvs.length}</div><div class="kpi-lbl">Total serviços</div></div>
@@ -10519,14 +10525,14 @@ function abrirRelatorioGantt(){
       <div class="kpi"><div class="kpi-val">${srvs.filter(s=>s.status_atual==='EM ANDAMENTO').length}</div><div class="kpi-lbl">Em andamento</div></div>
       <div class="kpi"><div class="kpi-val">${Math.round(srvs.reduce((a,s)=>a+(s.pct_atual||0),0)/Math.max(1,srvs.length))}%</div><div class="kpi-lbl">Avanço médio</div></div>
     </div>
-    <div class="sec-hdr">Cronograma Global — Gantt</div>
+    <div class="sec-hdr">Cronograma Global</div>
     <div style="overflow-x:auto">
       <table style="table-layout:fixed">
         <colgroup>
-          <col style="width:60px"><col style="width:180px"><col style="width:100px"><col style="width:110px"><col style="width:90px"><col style="width:80px"><col style="width:80px"><col style="width:240px">
+          <col style="width:60px"><col style="width:180px"><col style="width:110px"><col style="width:90px"><col style="width:80px"><col style="width:80px"><col style="width:240px">
         </colgroup>
         <thead>
-          <tr><th>Cód.</th><th>Serviço</th><th>Setor</th><th>Status</th><th>Avanço</th><th>Início</th><th>Fim</th>
+          <tr><th>Cód.</th><th>Serviço</th><th>Status</th><th>Avanço</th><th>Início</th><th>Fim</th>
             <th>
               <div style="position:relative;height:14px">
                 ${months.map(m=>`<span style="position:absolute;left:${m.leftPct}%;font-size:8px;white-space:nowrap;color:rgba(255,255,255,.7)">${m.lbl}</span>`).join('')}
@@ -10537,17 +10543,20 @@ function abrirRelatorioGantt(){
         <tbody>${tblRows}</tbody>
       </table>
     </div>
+    ${todayLeft >= 0 && todayLeft <= 100 ? `<div style="font-size:10px;color:var(--primary,#1a3a2a);font-weight:700;margin-top:4px">▼ Hoje — ${today()}</div>` : ''}
     <div style="margin-top:10px;display:flex;gap:12px;font-size:10px;color:#6B7280">
       <span><span style="display:inline-block;width:10px;height:10px;background:${p1};margin-right:4px;vertical-align:middle"></span>A executar</span>
       <span><span style="display:inline-block;width:10px;height:10px;background:${p2};margin-right:4px;vertical-align:middle"></span>Em andamento</span>
       <span><span style="display:inline-block;width:10px;height:10px;background:#065F46;margin-right:4px;vertical-align:middle"></span>Concluído</span>
     </div>
   </div>
-  <div class="footer">${esc2(c.empresa||'')} &nbsp;·&nbsp; ${esc2(c.obra||'')} &nbsp;·&nbsp; Semana ${c.semana||1} &nbsp;·&nbsp; ${today()}</div>
+  </div>
   </body></html>`;
 
+  _relCurrentHtml = html;
+  _relCurrentTitle = `Cronograma & Gantt — Semana ${c.semana||1}`;
   document.getElementById('rel-preview-content').innerHTML = `<iframe srcdoc="${html.replace(/"/g,'&quot;')}" style="width:100%;min-height:85vh;border:none"></iframe>`;
-  document.getElementById('rel-modal-title').textContent = `Cronograma & Gantt — Semana ${c.semana||1}`;
+  document.getElementById('rel-modal-title').textContent = _relCurrentTitle;
   document.getElementById('rel-modal').classList.add('show');
   document.getElementById('rel-modal').scrollTop = 0;
 }
@@ -10556,6 +10565,39 @@ function abrirRelatorioGantt(){
 // RELATÓRIO SEMANAL INTERNO — padrão BERTI
 // ═══════════════════════════════════════════════════════════════
 function abrirRelatorioSemanal(){
+  // Show week/date picker first
+  const c = state.config;
+  const semAtual = c.semana || 1;
+  const dataHoje = today();
+
+  const modal = document.createElement('div');
+  modal.id = 'modal-rel-semana';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+  modal.innerHTML = `
+    <div style="background:var(--surface);border-radius:12px;padding:20px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.4)">
+      <div style="font-family:var(--font-display);font-size:15px;font-weight:800;color:var(--text);margin-bottom:12px">📄 Relatório Semanal Interno</div>
+      <div class="field" style="margin-bottom:12px">
+        <label>Semana</label>
+        <input type="number" id="rel-sem-num" value="${semAtual}" min="1" style="width:100%">
+      </div>
+      <div class="field" style="margin-bottom:12px">
+        <label>Data de referência</label>
+        <input type="text" id="rel-sem-data" value="${dataHoje}" style="width:100%" placeholder="DD/MM/AAAA">
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.5">Serão exibidos apenas os serviços com mudança nesta semana (avanço ou status diferente do anterior).</div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button onclick="document.getElementById('modal-rel-semana').remove()" style="background:transparent;border:1.5px solid var(--border);border-radius:8px;padding:8px 16px;cursor:pointer;color:var(--muted)">Cancelar</button>
+        <button onclick="_gerarRelSemanal()" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-family:var(--font-display);font-weight:800;cursor:pointer">Gerar →</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+function _gerarRelSemanal(){
+  const semNum = parseInt(document.getElementById('rel-sem-num').value)||1;
+  const dataRef = document.getElementById('rel-sem-data').value || today();
+  document.getElementById('modal-rel-semana').remove();
+
   const c = state.config;
   const t = getRelTema();
   const p1 = t.p1, p2 = t.p2;
@@ -10651,9 +10693,9 @@ function abrirRelatorioSemanal(){
     end: esc2(c.endereco_obra || ''),
     campos: [
       {l:'Contratante', v: esc2(c.razao_cliente||c.cliente||'—'), s: c.cnpj_cliente ? `CNPJ ${esc2(c.cnpj_cliente)}` : ''},
-      {l:'Semana / Medição', v: `Semana ${c.semana||1} — Med. ${c.semana||1} / ${c.medicoes||7}`},
+      {l:'Semana / Medição', v: `Semana ${semNum} — Med. ${semNum} / ${c.medicoes||7}`},
       {l:'Período', v: periodo},
-      {l:'Gerado em', v: `${today()} · Cockpit v17`}
+      {l:'Gerado em', v: `${today()} · ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`}
     ]
   });
 
@@ -10761,11 +10803,11 @@ ${cabHeader}
 <div class="rdp">
   <div class="rdp-l">${esc2(c.empresa||'Berti Construtora')} · CONFIDENCIAL</div>
   <div class="rdp-c">${esc2(c.obra||'')} — Semana ${c.semana||1}</div>
-  <div class="rdp-r">${today()} · Cockpit v17</div>
+  <div class="rdp-r">${today()} · ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
 </div>
 </div></body>`;
 
-  abrirModalRel(`Relatório Interno — Semana ${c.semana||1}`, body);
+  abrirModalRel(`Relatório Interno — Semana ${semNum}`, body);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -11062,7 +11104,7 @@ ${cabHeader}
 <div class="rdp">
   <div class="rdp-l">${esc2(c.empresa||'Berti Construtora LTDA')} · ${esc2(c.email_empresa||'')}</div>
   <div class="rdp-c">Orçamento Detalhado — ${esc2(c.obra||'')}</div>
-  <div class="rdp-r">${today()} · Cockpit v17</div>
+  <div class="rdp-r">${today()} · ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
 </div>
 </div></body>`;
 
@@ -11167,7 +11209,7 @@ ${cabHeader}
 <div class="rdp">
   <div class="rdp-l">${esc2(c.empresa||'Berti Construtora LTDA')} · ${esc2(c.email_empresa||'')}</div>
   <div class="rdp-c">Financeiro — ${esc2(c.obra||'')}</div>
-  <div class="rdp-r">${today()} · Cockpit v17</div>
+  <div class="rdp-r">${today()} · ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
 </div>
 </div></body>`;
 
@@ -11286,7 +11328,7 @@ ${cabHeader}
 <div class="rdp">
   <div class="rdp-l">${esc2(c.empresa||'Berti Construtora LTDA')} · ${esc2(c.email_empresa||'')}</div>
   <div class="rdp-c">${esc2(c.obra||'')} · Medição ${semana}/${totalMed}</div>
-  <div class="rdp-r">${today()} · Cockpit v17</div>
+  <div class="rdp-r">${today()} · ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
 </div>
 </div></body>`;
 
@@ -14881,21 +14923,41 @@ function gerarLinhaDoTempo(){
     </div>`;
   }).join('');
 
+  const t = getRelTema();
+  const p1 = t.p1, p2 = t.p2;
+  const pi = c.periodo_ini ? fmtDate(c.periodo_ini) : '';
+  const pf = c.periodo_fim ? fmtDate(c.periodo_fim) : '';
+  const periodo = pi && pf ? `${pi} a ${pf}` : (pi||'—');
+
+  const cabHeader = buildBertiHeader({
+    tipo: 'Linha do Tempo da Obra',
+    obra: c.obra || 'Obra',
+    end: esc2(c.endereco_obra || ''),
+    campos: [
+      {l:'Contratante', v: esc2(c.razao_cliente||c.cliente||'—')},
+      {l:'Período', v: periodo},
+      {l:'Semanas', v: Object.keys(semanas).length + ' documentadas'},
+      {l:'Gerado em', v: `${today()} · ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`}
+    ]
+  });
+
   const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
   <title>Linha do Tempo — ${esc2(c.obra||'Obra')}</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <style>body{font-family:Arial,sans-serif;margin:0;padding:20px;background:#f9fafb}
-  .page{max-width:700px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.08)}
-  @media print{body{padding:0}.page{box-shadow:none;border-radius:0}}</style></head><body>
-  <div class="page">
-    ${buildDocHeader('Linha do Tempo da Obra', `${esc2(c.obra||'')} · ${Object.keys(semanas).length} semanas documentadas`)}
-    <div style="padding:24px 32px">
+  ${getBertiCSS(p1,p2)}
+  <style>@media print{body{padding:0}.doc{box-shadow:none;border-radius:0}}</style></head><body>
+  <div class="doc">
+    ${cabHeader}
+    <div class="corpo" style="padding:24px 32px">
       <div style="position:relative">${timelineHtml}</div>
     </div>
+    <div class="rdp">
+      <div class="rdp-l">${esc2(c.empresa||'Berti Construtora LTDA')}</div>
+      <div class="rdp-c">Linha do Tempo — ${esc2(c.obra||'')}</div>
+      <div class="rdp-r">${today()} · Semana ${c.semana||1}</div>
+    </div>
   </div>
-  <div style="text-align:center;margin-top:20px">
-    <button onclick="window.print()" style="background:#1d4ed8;color:#fff;border:none;border-radius:6px;padding:10px 20px;font-size:14px;cursor:pointer">🖨️ Imprimir / Salvar PDF</button>
-  </div></body></html>`;
+  </body></html>`;
   mostrarPreview(html, `Linha do Tempo — ${esc(c.obra||'Obra')}`);
 }
 
