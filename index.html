@@ -4820,6 +4820,18 @@ async function handleCapa(input){
 // ───────────────────────────────────────────────
 // IMPORT UNIFICADO (BLOCO-COCKPIT-JSON)
 // ───────────────────────────────────────────────
+// Parse pct: aceita 0-100 (inteiro) ou 0-1 (decimal da planilha), arredonda para step de 5
+function _parsePct(v){
+  if(v === undefined || v === null || v === '') return 0;
+  var n = parseFloat(v);
+  if(isNaN(n)) return 0;
+  // Se veio como decimal 0-1 (ex: 0.75), converter para 0-100
+  if(n > 0 && n <= 1) n = Math.round(n * 100);
+  // Arredondar para múltiplo de 5
+  n = Math.round(n / 5) * 5;
+  return Math.max(0, Math.min(100, n));
+}
+
 function importUnificado(){
   const raw = getVal('import-unificado').trim();
   if(!raw){ toast('Cole o JSON da obra primeiro', 'error'); return; }
@@ -4895,8 +4907,8 @@ function importUnificado(){
       valor: parseFloat(s.valor)||0,
       status_anterior: s.status_anterior || s.status || 'A EXECUTAR',
       status_atual: s.status_atual || s.status || 'A EXECUTAR',
-      pct_anterior: parseInt(s.pct_anterior ?? s.pct) || 0,
-      pct_atual: parseInt(s.pct_atual ?? s.pct) || 0,
+      pct_anterior: _parsePct(s.pct_anterior ?? s.pct ?? s.conclusao ?? s.pct_conclusao),
+      pct_atual: _parsePct(s.pct_atual ?? s.pct ?? s.conclusao ?? s.pct_conclusao),
       observacao: s.observacao||'',
       data_inicio: s.data_inicio||'',
       data_fim: s.data_fim||'',
@@ -4989,8 +5001,8 @@ function importServicos(){
       fornecedor: s.fornecedor||'',
       status_anterior: s.status||'A EXECUTAR',
       status_atual: s.status||'A EXECUTAR',
-      pct_anterior: parseInt(s.pct)||0,
-      pct_atual: parseInt(s.pct)||0,
+      pct_anterior: _parsePct(s.pct_anterior || s.pct || s.conclusao),
+      pct_atual: _parsePct(s.pct_atual || s.pct || s.conclusao),
       observacao: s.observacao||'',
       data_inicio: s.data_inicio||'',
       data_fim: s.data_fim||'',
@@ -5490,7 +5502,7 @@ function renderOrcTabelaInline(){
       slider.dataset.idx=idx;
       slider.addEventListener('input', function(){ orcEditPct(+this.dataset.idx, this.value); });
       var numPct = document.createElement('input');
-      numPct.id='orc-pct-'+idx; numPct.type='number'; numPct.min=0; numPct.max=100; numPct.value=pct;
+      numPct.id='orc-pct-'+idx; numPct.type='number'; numPct.min=0; numPct.max=100; numPct.step=5; numPct.value=pct;
       numPct.style.cssText='width:34px;font-size:10px;font-family:var(--font-mono);text-align:right;background:transparent;border:none;border-bottom:1px solid var(--border);outline:none;color:var(--muted)';
       numPct.dataset.idx=idx;
       numPct.addEventListener('change', function(){ orcEditPct(+this.dataset.idx, this.value); });
@@ -5630,6 +5642,7 @@ function orcEditField(idx, field, val){
 
 function orcEditPct(idx, val){
   var v = Math.min(100, Math.max(0, parseInt(val)||0));
+  v = Math.round(v / 5) * 5; // snap to 5
   if(!state.servicos[idx]) return;
   state.servicos[idx].pct_atual = v;
   if(v >= 100) state.servicos[idx].status_atual = 'CONCLUÍDO';
@@ -16840,22 +16853,4 @@ if(document.readyState === "loading"){
       <div class="guia-body">
         <div class="guia-step-num" id="guia-step-num">—</div>
         <div class="guia-step-title" id="guia-step-title">—</div>
-        <div class="guia-step-hint" id="guia-step-hint">—</div>
-        <div class="guia-btns">
-          <button class="guia-btn-skip" onclick="guiaPular()">Pular</button>
-          <button class="guia-btn-ir" id="guia-btn-ir" onclick="guiaIr()">Ir → <span id="guia-btn-label">Ir</span></button>
-        </div>
-      </div>
-    </div>
-    <div class="guia-progress-bar">
-      <div class="guia-progress-fill" id="guia-progress-fill" style="width:0%"></div>
-    </div>
-  </div>
-</div>
-<button id="guia-reabrir" onclick="guiaAbrir()" style="display:none">
-  🗺 Guia de Visita
-  <span class="gr-badge" id="guia-reabrir-badge">0/13</span>
-</button>
-
-</body>
-</html>
+        <div class="guia-step-hint" id="guia-st
