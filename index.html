@@ -16853,4 +16853,22 @@ if(document.readyState === "loading"){
       <div class="guia-body">
         <div class="guia-step-num" id="guia-step-num">—</div>
         <div class="guia-step-title" id="guia-step-title">—</div>
-        <div class="guia-step-hint" id="guia-st
+        <div class="guia-step-hint" id="guia-step-hint">—</div>
+        <div class="guia-btns">
+          <button class="guia-btn-skip" onclick="guiaPular()">Pular</button>
+          <button class="guia-btn-ir" id="guia-btn-ir" onclick="guiaIr()">Ir → <span id="guia-btn-label">Ir</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="guia-progress-bar">
+      <div class="guia-progress-fill" id="guia-progress-fill" style="width:0%"></div>
+    </div>
+  </div>
+</div>
+<button id="guia-reabrir" onclick="guiaAbrir()" style="display:none">
+  🗺 Guia de Visita
+  <span class="gr-badge" id="guia-reabrir-badge">0/13</span>
+</button>
+
+</body>
+</html>
